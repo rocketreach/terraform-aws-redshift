@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.1.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v6.0.0...v6.1.0) (2025-03-30)
+
+
+### Features
+
+* Add Terragrunt module wrapper ([#105](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/105)) ([f973dd5](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/f973dd583b969d8c3f19cada0bbbb6e8be246996))
+
+
+### Bug Fixes
+
+* Update CI workflow versions to latest ([#102](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/102)) ([776da10](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/776da10c7872cc33b9b2a14b87e73397a4abc842))
+
+## [5.5.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.4.0...v5.5.0) (2024-05-08)
+
+
+### Features
+
+* Logging and Snapshot copy resources converted to standalone resource equivalents, MSV of Terraform raised to `v1.3` ([#99](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/99)) ([2a2fbdc](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/2a2fbdcbd25d5b3f11e7b520309165a03aadf3a0))
+
+## [5.4.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.3.1...v5.4.0) (2024-03-26)
+
+
+### Features
+
+* Secretsmanager secret rotation for master user password ([#97](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/97)) ([e542e41](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/e542e41b233742bb8789c2a391c2ca89775f7ec3))
+
+## [5.3.1](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.3.0...v5.3.1) (2024-03-06)
+
+
+### Bug Fixes
+
+* Update CI workflow versions to remove deprecated runtime warnings ([#96](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/96)) ([bd1679d](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/bd1679dfb4ea1770598ba72a03558581a9573b40))
+
+## [5.3.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.2.0...v5.3.0) (2024-02-17)
+
+
+### Features
+
+* Add support for creating cloudwatch log groups ([#94](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/94)) ([d8e144c](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/d8e144ce91803360c03b1985bdf860966a96dc48))
+
+## [5.2.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.1.1...v5.2.0) (2024-02-10)
+
+
+### Features
+
+* Add `multi_az` support and add `cluster_namespace_arn` ([#93](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/93)) ([b4c2141](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/b4c2141e2f62a9507aafa43358e88541ca9993b8))
+
+### [5.1.1](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.1.0...v5.1.1) (2024-01-18)
+
+
+### Bug Fixes
+
+* Correct `try()` lookup on `manage_master_password` variables ([#90](https://github.com/terraform-aws-modules/terraform-aws-redshift/issues/90)) ([b1090c4](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/b1090c4a8b95eb0886b6b06343985be1b6f8f8ca))
+
+## [5.1.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v5.0.0...v5.1.0) (2024-01-13)
+
+
+### Features
+
+* Add managed secrets option (release for PR 87) ([51b112f](https://github.com/terraform-aws-modules/terraform-aws-redshift/commit/51b112f51f16476ff81ab6157020875e47b8f9fd))
+
 ## [5.0.0](https://github.com/terraform-aws-modules/terraform-aws-redshift/compare/v4.0.3...v5.0.0) (2023-06-06)
 
 

@@ -46,40 +46,21 @@ resource "aws_redshift_cluster" "this" {
 
   # iam_roles and default_iam_roles are managed in the aws_redshift_cluster_iam_roles resource below
 
-  dynamic "logging" {
-    for_each = can(var.logging.enable) ? [var.logging] : []
-
-    content {
-      bucket_name          = try(logging.value.bucket_name, null)
-      enable               = logging.value.enable
-      log_destination_type = try(logging.value.log_destination_type, null)
-      log_exports          = try(logging.value.log_exports, null)
-      s3_key_prefix        = try(logging.value.s3_key_prefix, null)
-    }
-  }
-
-  maintenance_track_name           = var.maintenance_track_name
-  manual_snapshot_retention_period = var.manual_snapshot_retention_period
-  master_password                  = var.snapshot_identifier != null ? null : local.master_password
-  master_username                  = var.master_username
-  node_type                        = var.node_type
-  number_of_nodes                  = var.number_of_nodes
-  owner_account                    = var.owner_account
-  port                             = var.port
-  preferred_maintenance_window     = var.preferred_maintenance_window
-  publicly_accessible              = var.publicly_accessible
-  skip_final_snapshot              = var.skip_final_snapshot
-  snapshot_cluster_identifier      = var.snapshot_cluster_identifier
-
-  dynamic "snapshot_copy" {
-    for_each = length(var.snapshot_copy) > 0 ? [var.snapshot_copy] : []
-
-    content {
-      destination_region = snapshot_copy.value.destination_region
-      grant_name         = try(snapshot_copy.value.grant_name, null)
-      retention_period   = try(snapshot_copy.value.retention_period, null)
-    }
-  }
+  maintenance_track_name            = var.maintenance_track_name
+  manual_snapshot_retention_period  = var.manual_snapshot_retention_period
+  manage_master_password            = var.manage_master_password ? var.manage_master_password : null
+  master_password                   = var.snapshot_identifier == null && !var.manage_master_password ? local.master_password : null
+  master_password_secret_kms_key_id = var.master_password_secret_kms_key_id
+  master_username                   = var.master_username
+  multi_az                          = var.multi_az
+  node_type                         = var.node_type
+  number_of_nodes                   = var.number_of_nodes
+  owner_account                     = var.owner_account
+  port                              = var.port
+  preferred_maintenance_window      = var.preferred_maintenance_window
+  publicly_accessible               = var.publicly_accessible
+  skip_final_snapshot               = var.skip_final_snapshot
+  snapshot_cluster_identifier       = var.snapshot_cluster_identifier
 
   snapshot_identifier    = var.snapshot_identifier
   vpc_security_group_ids = var.vpc_security_group_ids
@@ -95,6 +76,8 @@ resource "aws_redshift_cluster" "this" {
   lifecycle {
     ignore_changes = [master_password, database_name]
   }
+
+  depends_on = [aws_cloudwatch_log_group.this]
 }
 
 ################################################################################
@@ -315,4 +298,64 @@ resource "aws_redshift_authentication_profile" "this" {
 
   authentication_profile_name    = try(each.value.name, each.key)
   authentication_profile_content = jsonencode(each.value.content)
+}
+
+################################################################################
+# Logging
+################################################################################
+
+resource "aws_redshift_logging" "this" {
+  count = var.create && length(var.logging) > 0 ? 1 : 0
+
+  cluster_identifier   = aws_redshift_cluster.this[0].id
+  bucket_name          = try(var.logging.bucket_name, null)
+  log_destination_type = try(var.logging.log_destination_type, null)
+  log_exports          = try(var.logging.log_exports, null)
+  s3_key_prefix        = try(var.logging.s3_key_prefix, null)
+}
+
+################################################################################
+# Snapshot Copy
+################################################################################
+
+resource "aws_redshift_snapshot_copy" "this" {
+  count = var.create && length(var.snapshot_copy) > 0 ? 1 : 0
+
+  cluster_identifier               = aws_redshift_cluster.this[0].id
+  destination_region               = var.snapshot_copy.destination_region
+  manual_snapshot_retention_period = try(var.snapshot_copy.manual_snapshot_retention_period, null)
+  retention_period                 = try(var.snapshot_copy.retention_period, null)
+  snapshot_copy_grant_name         = try(var.snapshot_copy.grant_name, null)
+}
+
+################################################################################
+# CloudWatch Log Group
+################################################################################
+
+resource "aws_cloudwatch_log_group" "this" {
+  for_each = toset([for log in try(var.logging.log_exports, []) : log if var.create && var.create_cloudwatch_log_group])
+
+  name              = "/aws/redshift/cluster/${var.cluster_identifier}/${each.value}"
+  retention_in_days = var.cloudwatch_log_group_retention_in_days
+  kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  skip_destroy      = var.cloudwatch_log_group_skip_destroy
+
+  tags = merge(var.tags, var.cloudwatch_log_group_tags)
+}
+
+################################################################################
+# Managed Secret Rotation
+################################################################################
+
+resource "aws_secretsmanager_secret_rotation" "this" {
+  count = var.create && var.manage_master_password && var.manage_master_password_rotation ? 1 : 0
+
+  secret_id          = aws_redshift_cluster.this[0].master_password_secret_arn
+  rotate_immediately = var.master_password_rotate_immediately
+
+  rotation_rules {
+    automatically_after_days = var.master_password_rotation_automatically_after_days
+    duration                 = var.master_password_rotation_duration
+    schedule_expression      = var.master_password_rotation_schedule_expression
+  }
 }

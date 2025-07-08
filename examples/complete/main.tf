@@ -37,10 +37,16 @@ module "redshift" {
   node_type             = "ra3.xlplus"
   number_of_nodes       = 3
 
-  database_name          = "mydb"
-  master_username        = "mydbuser"
-  create_random_password = false
-  master_password        = "MySecretPassw0rd1!" # Do better!
+  database_name   = "mydb"
+  master_username = "mydbuser"
+  # Either provide a good master password
+  #  create_random_password = false
+  #  master_password        = "MySecretPassw0rd1!" # Do better!
+  # Or make Redshift manage it in secrets manager
+  manage_master_password = true
+
+  manage_master_password_rotation              = true
+  master_password_rotation_schedule_expression = "rate(90 days)"
 
   encrypted   = true
   kms_key_arn = aws_kms_key.redshift.arn
@@ -58,7 +64,6 @@ module "redshift" {
   }
 
   logging = {
-    enable        = true
     bucket_name   = module.s3_logs.s3_bucket_id
     s3_key_prefix = local.s3_prefix
   }
@@ -195,6 +200,29 @@ resource "aws_redshift_snapshot_copy_grant" "useast1" {
 
   snapshot_copy_grant_name = "${local.name}-us-east-1"
   kms_key_id               = aws_kms_key.redshift_us_east_1.arn
+
+  tags = local.tags
+}
+
+################################################################################
+# Cloudwatch Logging
+################################################################################
+
+module "with_cloudwatch_logging" {
+  source = "../../"
+
+  cluster_identifier = "${local.name}-with-cloudwatch-logging"
+  node_type          = "dc2.large"
+
+  vpc_security_group_ids = [module.security_group.security_group_id]
+  subnet_ids             = module.vpc.redshift_subnets
+
+  create_cloudwatch_log_group            = true
+  cloudwatch_log_group_retention_in_days = 7
+  logging = {
+    log_destination_type = "cloudwatch"
+    log_exports          = ["connectionlog", "userlog", "useractivitylog"]
+  }
 
   tags = local.tags
 }

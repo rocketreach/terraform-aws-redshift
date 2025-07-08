@@ -107,6 +107,11 @@ output "cluster_nodes" {
   value       = module.redshift.cluster_nodes
 }
 
+output "cluster_namespace_arn" {
+  description = "The namespace Amazon Resource Name (ARN) of the cluster"
+  value       = module.redshift.cluster_namespace_arn
+}
+
 ################################################################################
 # Parameter Group
 ################################################################################
@@ -208,4 +213,17 @@ output "usage_limits" {
 output "authentication_profiles" {
   description = "Map of authentication profiles created and their associated attributes"
   value       = module.redshift.authentication_profiles
+}
+
+################################################################################
+# Managed Master Password Secret
+################################################################################
+output "master_password_secret_arn" {
+  description = "ARN of managed master password secret"
+  value       = module.redshift.master_password_secret_arn
+}
+
+output "master_password_secretsmanager_secret_rotation_enabled" {
+  description = "Specifies whether automatic rotation is enabled for the secret"
+  value       = module.redshift.cluster_secretsmanager_secret_rotation_enabled
 }

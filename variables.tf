@@ -123,11 +123,30 @@ variable "manual_snapshot_retention_period" {
   default     = null
 }
 
+
+variable "manage_master_password" {
+  description = "Whether to use AWS SecretsManager to manage the cluster admin credentials. Conflicts with `master_password`. One of `master_password` or `manage_master_password` is required unless `snapshot_identifier` is provided"
+  type        = bool
+  default     = false
+}
+
+variable "master_password_secret_kms_key_id" {
+  description = "ID of the KMS key used to encrypt the cluster admin credentials secret"
+  type        = string
+  default     = null
+}
+
 variable "master_password" {
   description = "Password for the master DB user. (Required unless a `snapshot_identifier` is provided). Must contain at least 8 chars, one uppercase letter, one lowercase letter, and one number"
   type        = string
   default     = null
   sensitive   = true
+}
+
+variable "multi_az" {
+  description = "Specifies if the Redshift cluster is multi-AZ"
+  type        = bool
+  default     = null
 }
 
 variable "create_random_password" {
@@ -454,4 +473,72 @@ variable "authentication_profiles" {
   description = "Map of authentication profiles to create"
   type        = any
   default     = {}
+}
+
+################################################################################
+# CloudWatch Log Group
+################################################################################
+
+variable "create_cloudwatch_log_group" {
+  description = "Determines whether a CloudWatch log group is created for each `var.logging.log_exports`"
+  type        = bool
+  default     = false
+}
+
+variable "cloudwatch_log_group_retention_in_days" {
+  description = "The number of days to retain CloudWatch logs for the redshift cluster"
+  type        = number
+  default     = 0
+}
+
+variable "cloudwatch_log_group_kms_key_id" {
+  description = "The ARN of the KMS Key to use when encrypting log data"
+  type        = string
+  default     = null
+}
+
+variable "cloudwatch_log_group_skip_destroy" {
+  description = "Set to true if you do not wish the log group (and any logs it may contain) to be deleted at destroy time, and instead just remove the log group from the Terraform state"
+  type        = bool
+  default     = null
+}
+
+variable "cloudwatch_log_group_tags" {
+  description = "Additional tags to add to cloudwatch log groups created"
+  type        = map(string)
+  default     = {}
+}
+
+################################################################################
+# Managed Secret Rotation
+################################################################################
+
+variable "manage_master_password_rotation" {
+  description = "Whether to manage the master user password rotation. Setting this value to false after previously having been set to true will disable automatic rotation."
+  type        = bool
+  default     = false
+}
+
+variable "master_password_rotate_immediately" {
+  description = "Specifies whether to rotate the secret immediately or wait until the next scheduled rotation window."
+  type        = bool
+  default     = null
+}
+
+variable "master_password_rotation_automatically_after_days" {
+  description = "Specifies the number of days between automatic scheduled rotations of the secret. Either `master_user_password_rotation_automatically_after_days` or `master_user_password_rotation_schedule_expression` must be specified."
+  type        = number
+  default     = null
+}
+
+variable "master_password_rotation_duration" {
+  description = "The length of the rotation window in hours. For example, 3h for a three hour window."
+  type        = string
+  default     = null
+}
+
+variable "master_password_rotation_schedule_expression" {
+  description = "A cron() or rate() expression that defines the schedule for rotating your secret. Either `master_user_password_rotation_automatically_after_days` or `master_user_password_rotation_schedule_expression` must be specified."
+  type        = string
+  default     = null
 }
