@@ -1,0 +1,43 @@
+name: DORA Deployment
+
+# Report a Datadog DORA deployment event when a PR merges to the default
+# branch. Lead time is measured from PR open to merge. For module/library
+# repos, "production" = the version on the default branch, available for
+# consumption by downstream repos. Apply duration is not measured here,
+# so the event's started_at and finished_at both equal merge time.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  report:
+    name: Report DORA event
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve service name
+        id: name
+        env:
+          REPO: ${{ github.event.repository.name }}
+        run: echo "service=${REPO#terraform-}" >> "$GITHUB_OUTPUT"
+
+      - name: Capture timestamp
+        id: ts
+        run: echo "now=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Report DORA deployment
+        uses: rocketreach/github-actions/datadog/dora-deploy@main
+        with:
+          status: success
+          service: ${{ steps.name.outputs.service }}
+          env: prod
+          commit_sha: ${{ github.event.pull_request.merge_commit_sha }}
+          started_at: ${{ steps.ts.outputs.now }}
+          github_token: ${{ secrets.ENG_ADMIN_PAT_FOR_DATADOG_DORA }}
+          dd_api_key: ${{ secrets.DD_API_KEY }}
